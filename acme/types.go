@@ -406,7 +406,14 @@ type wireAuthz struct {
 	Expires      time.Time
 	Wildcard     bool
 	Challenges   []wireChallenge
+	Error		 acmeErr `json:"error"`
 	Combinations [][]int
+}
+
+type acmeErr struct {
+	Type   string `json:"type"`
+	Detail string `json:"detail"`
+	Status int    `json:"status"`
 }
 
 func (z *wireAuthz) authorization(uri string) *Authorization {
@@ -428,7 +435,7 @@ func (z *wireAuthz) authorization(uri string) *Authorization {
 func (z *wireAuthz) error(uri string) *AuthorizationError {
 	err := &AuthorizationError{
 		URI:        uri,
-		Identifier: z.Identifier.Value,
+		Identifier: fmt.Sprintf("type: %s, defaill %s, status: %d, id: %s", z.Error.Type, z.Error.Detail, z.Error.Status, z.Identifier.Value),
 	}
 	for _, raw := range z.Challenges {
 		if raw.Error != nil {
